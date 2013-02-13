@@ -1,0 +1,5 @@
+name = Responsive Preview
+description = Provides a component that previews the a page in various device dimensions.
+package = Core
+version = VERSION
+core = 8.x

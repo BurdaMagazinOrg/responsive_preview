@@ -1,0 +1,113 @@
+<?php
+
+/**
+ * @file
+ * Provides a component that previews the a page in various device dimensions.
+ */
+
+/**
+ * Page callback: Returns the breakpoints of the current active theme.
+ *
+ * @see responsive_preview_menu().
+ */
+function responsive_preview_get_devices_list() {
+  $devices = config('responsive-preview.devices')->get('devices');
+
+  $links = array();
+
+  foreach($devices as $name => $info) {
+    $links[$name] = array(
+      'title' => $info['label'],
+      'href' => '',
+      'fragment' => '!',
+      'exteranl' => TRUE,
+      'options' => array(
+        'fragment' => '!',
+        'exteranl' => TRUE,
+      ),
+      'attributes' => array(
+        'class' => array('responsive-preview-device'),
+        'data-responsive-preview-width' => ($info['dimensions']['width']) ? $info['dimensions']['width'] : '',
+        'data-responsive-preview-height' => ($info['dimensions']['height']) ? $info['dimensions']['height'] : '',
+      ),
+    );
+  }
+  return $links;
+}
+
+function responsive_preview_access() {
+  return !path_is_admin(current_path());
+}
+
+/**
+ * Implements hook_toolbar().
+ */
+function responsive_preview_toolbar() {
+
+  $items['responsive_preview'] = array(
+    '#type' => 'toolbar_item',
+    'tab' => array(
+      'trigger' => array(
+        '#theme' => 'html_tag',
+        '#tag' => 'button',
+        '#value' => t('Layout preview'),
+        '#attributes' => array(
+          'id' => 'responsive-preview',
+          'title' => "Preview page layout",
+          'class' => array('icon', 'icon-responsive-preview', 'trigger'),
+        ),
+      ),
+      'device_options' => array(
+        '#theme' => 'links',
+        '#links' => responsive_preview_get_devices_list(),
+        '#attributes' => array(
+          'class' => array('responsive-preview-options'),
+        ),
+      ),
+    ),
+    '#wrapper_attributes' => array(
+      'class' => array('responsive-preview-toolbar-tab'),
+    ),
+    '#attached' => array(
+      'library' => array(
+        array('responsive_preview', 'responsive-preview'),
+      ),
+    ),
+    '#weight' => 200,
+    '#access' => responsive_preview_access(),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_library().
+ */
+function responsive_preview_library_info() {
+  $libraries = array();
+  $path = drupal_get_path('module', 'responsive_preview');
+  $options = array(
+    'scope' => 'footer',
+    'attributes' => array('defer' => TRUE),
+  );
+
+  $libraries['responsive-preview'] = array(
+    'title' => 'Preview layouts',
+    'website' => 'http://drupal.org/project/responsive_preview',
+    'version' => VERSION,
+    'css' => array(
+      $path . '/css/responsive-preview.base.css',
+      $path . '/css/responsive-preview.theme.css',
+    ),
+    'js' => array(
+      $path . '/js/responsive-preview.js' => $options,
+    ),
+    'dependencies' => array(
+      array('system', 'jquery'),
+      array('system', 'drupal.ajax'),
+      array('system', 'drupalSettings'),
+    ),
+  );
+
+  return $libraries;
+}

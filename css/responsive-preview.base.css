@@ -1,0 +1,85 @@
+/**
+ * Constrain the window height to the client height when the preview is active.
+ */
+.responsive-preview-active {
+  height: 100%;
+  overflow: hidden;
+}
+
+/**
+ * Toolbar tab.
+ */
+.responsive-preview-toolbar-tab {
+  display: none;
+}
+/* At narrow screen widths, float the tab to the left so it falls in line with
+ * the rest of the toolbar tabs. */
+.js .toolbar .bar .responsive-preview-toolbar-tab.tab {
+  display: block;
+  float: left; /* LTR */
+}
+/* At wide widths, float the tab to the right. */
+@media only screen and (min-width: 36em) {
+  .js .toolbar .bar .responsive-preview-toolbar-tab.tab {
+    float: right; /* LTR */
+  }
+}
+.responsive-preview-toolbar-tab .responsive-preview-options {
+  display: none;
+}
+.responsive-preview-toolbar-tab.open .responsive-preview-options {
+  display: block;
+}
+
+/**
+ * Preview container.
+ *
+ * The container is kept offscreen after it is built and has been disabled.
+ */
+#responsive-preview-container {
+  display: none;
+  height: 100%;
+  left: -200%; /* LTR */
+  position: absolute;
+  width: 100%;
+  z-index: 1050;
+}
+#responsive-preview-container.active {
+  display: block;
+  left: 0; /* LTR */
+}
+#responsive-preview-close {
+  position: absolute;
+  z-index: 75;
+}
+.responsive-preview-modal-background {
+  bottom: 0;
+  height: 100%;
+  left: 0;
+  position: fixed;
+  right: 0;
+  top: 3em;
+  width: 100%;
+  z-index: 1;
+}
+
+/**
+ * Preview iframe.
+ */
+#responsive-preview-container iframe {
+  height: 100%;
+  position: relative;
+  width: 100%;
+  z-index: 100;
+}
+
+/**
+ * Override Toolbar styling in the preview iframe.
+ */
+.responsive-preview-frame #toolbar-administration {
+  display: none !important;
+}
+body.toolbar-tray-open.responsive-preview-frame {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
