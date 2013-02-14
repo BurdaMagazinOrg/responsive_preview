@@ -1,0 +1,26 @@
+/**
+ * @file
+ * RTL base styling for responsive preview.
+ */
+
+/**
+ * Toolbar tab.
+ */
+.responsive-preview-toolbar-tab .responsive-preview-options {
+  left: 0.3em;
+  right: auto;
+}
+
+/**
+ * Preview container.
+ *
+ * The container is kept offscreen after it is built and has been disabled.
+ */
+#responsive-preview-container {
+  left: auto;
+  right: -200%;
+}
+#responsive-preview-container.active {
+  left: auto;
+  right: 0;
+}

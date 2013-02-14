@@ -6,12 +6,10 @@
  */
 
 /**
- * Page callback: Returns the breakpoints of the current active theme.
- *
- * @see responsive_preview_menu().
+ * Returns a list of devices and their properties from configuration.
  */
 function responsive_preview_get_devices_list() {
-  $devices = config('responsive-preview.devices')->get('devices');
+  $devices = config('responsive_preview.devices')->get('devices');
 
   $links = array();
 
@@ -35,6 +33,9 @@ function responsive_preview_get_devices_list() {
   return $links;
 }
 
+/**
+ * Prevents the preview tab from rendering on administration pages.
+ */
 function responsive_preview_access() {
   return !path_is_admin(current_path());
 }
@@ -51,6 +52,8 @@ function responsive_preview_toolbar() {
         '#theme' => 'html_tag',
         '#tag' => 'button',
         '#value' => t('Layout preview'),
+        '#value_prefix' => '<span class="element-invisible">',
+        '#value_suffix' => '</span>',
         '#attributes' => array(
           'id' => 'responsive-preview',
           'title' => "Preview page layout",
@@ -104,8 +107,7 @@ function responsive_preview_library_info() {
     ),
     'dependencies' => array(
       array('system', 'jquery'),
-      array('system', 'drupal.ajax'),
-      array('system', 'drupalSettings'),
+      array('system', 'drupal'),
     ),
   );
 

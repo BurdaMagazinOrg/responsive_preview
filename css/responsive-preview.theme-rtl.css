@@ -1,0 +1,32 @@
+/**
+ * @file
+ * RTL styling for responsive preview.
+ */
+
+/**
+ * Toolbar tab.
+ */
+
+/* Toolbar icon. */
+.toolbar .bar .responsive-preview-toolbar-tab .icon-responsive-preview:before {
+  left: auto;
+  right: 1em;
+}
+
+/* Toolbar tab triangle toggle. */
+.responsive-preview-toolbar-tab .trigger:after {
+  left: 1em;
+  right: auto;
+}
+.responsive-preview-toolbar-tab.open:before {
+  left: 0.3em;
+  right: auto;
+}
+
+/**
+ * Preview container.
+ */
+#responsive-preview-close {
+  margin-left: 0;
+  margin-right: 10px;
+}

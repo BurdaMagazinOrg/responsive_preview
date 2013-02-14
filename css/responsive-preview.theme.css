@@ -1,4 +1,9 @@
 /**
+ * @file
+ * Styling for responsive preview.
+ */
+
+/**
  * Toolbar tab.
  */
 .responsive-preview-toolbar-tab .responsive-preview-options {
@@ -10,7 +15,6 @@
   margin-right: 0;
   padding-left: 0;
   padding-right: 0;
-  text-indent: -9999px; /* LTR */
   width: 5em;
 }
 .icon-responsive-preview:before {
@@ -30,7 +34,6 @@
 }
 /* Device preview options. */
 .responsive-preview-toolbar-tab .responsive-preview-options {
-  border-right: none; /* LTR */
   box-shadow: 0 0 2em 0 rgba(0, 0, 0, 0.75);
   position: absolute;
   white-space: nowrap;
@@ -39,13 +42,16 @@
   background-color: white;
   border-top: 1px solid #cfcfcf;
 }
+.responsive-preview-toolbar-tab .trigger {
+  height: 3em;
+}
 .responsive-preview-toolbar-tab .trigger,
 .responsive-preview-toolbar-tab .responsive-preview-options a {
   padding-bottom: 1em;
   padding-top: 1em;
 }
 .toolbar .responsive-preview-toolbar-tab.tab .responsive-preview-options a {
-  color: #777777;
+  color: #777;
 }
 .toolbar .responsive-preview-toolbar-tab.tab .responsive-preview-options a:hover {
   color: black;
@@ -62,16 +68,29 @@
   display: block;
   height: 0;
   line-height: 0;
+  overflow: hidden;
   position: absolute;
-  right: 1.2em; /* LTR */
+  right: 1em; /* LTR */
   top: 50%;
   margin-top: -0.1666em;
   width: 0;
-  overflow: hidden;
+  z-index: 1
+}
+.responsive-preview-toolbar-tab.open:before {
+  background-color: white;
+  bottom: -1px;
+  content: ' ';
+  display: block;
+  position: absolute;
+  right: 0.3em; /* LTR */
+  top: 0;
+  width: 2em;
+  z-index: 1;
 }
 .responsive-preview-toolbar-tab.open .trigger:after {
   border-bottom: 0.4545em solid;
   border-top-color: transparent;
+  color: black;
   top: 1.25em;
 }
 
@@ -94,10 +113,8 @@
   cursor: pointer;
   font-size: 1em;
   height: 2.333em;
-  left: 0; /* LTR */
-  margin-left: 10px;
+  margin-left: 10px; /* LTR */
   margin-top: 9px;
-  text-indent: -9999em; /* LTR */
   width: 2.333em;
 }
 #responsive-preview-close:hover {
