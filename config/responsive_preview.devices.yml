@@ -1,19 +1,59 @@
 devices:
   iphone:
-    label: iPhone
+    label: iPhone 5
+    dimensions:
+      width: 640
+      height: 1136
+  iphone4:
+    label: iPhone 4
+    dimensions:
+      width: 640
+      height: 960
+  iphone3gs:
+    label: iPhone 3GS
     dimensions:
       width: 320
       height: 480
-  android:
-    label: Android
-    dimensions:
-      width: 540
-      height: 960
-  ipad:
-    label: iPad
+  ipadmini:
+    label: iPad mini
     dimensions:
       width: 768
       height: 1024
+  ipad4:
+    label: iPad 3/4
+    dimensions:
+      width: 1536
+      height: 2048
+  ipad2:
+    label: iPad 2
+    dimensions:
+      width: 768
+      height: 1024
+  kindlefire:
+    label: Kindle Fire
+    dimensions:
+      width: 600
+      height: 1024
+  kindlefirehd:
+    label: Kindle Fire HD
+    dimensions:
+      width: 800
+      height: 1280
+  nooktablet:
+    label: Nook Tablet
+    dimensions:
+      width: 600
+      height: 1024
+  nexus7:
+    label: Nexus 7
+    dimensions:
+      width: 800
+      height: 1280
+  surface:
+    label: Microsoft Surface
+    dimensions:
+      width: 768
+      height: 1366
   desktop:
     label: Typical desktop
     dimensions:

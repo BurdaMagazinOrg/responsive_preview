@@ -32,7 +32,7 @@
 }
 .responsive-preview-toolbar-tab .responsive-preview-options {
   display: none;
-  right: 0.3em; /* LTR */
+  z-index: 1;
 }
 .responsive-preview-toolbar-tab.open .responsive-preview-options {
   display: block;

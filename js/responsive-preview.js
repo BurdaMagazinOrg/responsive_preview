@@ -21,6 +21,8 @@
     height: null // The height of the device to preview.
   };
   var edgeTolerance = 60;
+  // Take RTL text direction into account.
+  var dir = document.getElementsByTagName('html')[0].getAttribute('dir');
   var parentWindow;
 
   /**
@@ -42,12 +44,15 @@
         $(window.document.body).once('responsive-preview');
         // Retain a reference to the parent window.
         parentWindow = window;
-        // Append the selector to the preview container.
+        // Assign behaviors to the toolbar tab.
         $toolbarTab = $('.responsive-preview-toolbar-tab')
+          .on('click.responsivePreview', toggleConfigurationOptions)
           .on('click.responsivePreview', '#responsive-preview', toggleConfigurationOptions)
-          .on('mouseleave.responsivePreview', '.responsive-preview-options', {open: false}, toggleConfigurationOptions)
+          .on('mouseleave.responsivePreview', {open: false}, toggleConfigurationOptions)
           .on('click.responsivePreview', '.responsive-preview-options .responsive-preview-device', {open: false}, toggleConfigurationOptions)
           .on('click.responsivePreview', '.responsive-preview-device', loadDevicePreview);
+        // Hide layout options that are wider than the current screen
+        prunePreviewChoices.call($toolbarTab.find('.responsive-preview-device'), edgeTolerance);
         // Register a handler on window resize to reposition the tab dropdown.
         $(window)
           .on('resize.responsivePreview.tab', handleWindowToolbarResize);
@@ -69,13 +74,14 @@
   /**
    * Toggles the list of devices available to preview from the toolbar tab.
    *
-   * @param {Object} event
+   * @param Object event
    *   jQuery Event object.
    */
   function toggleConfigurationOptions (event) {
     event.preventDefault();
+    event.stopPropagation();
     var open = (event.data && typeof event.data.open === 'boolean') ? event.data.open : undefined;
-    var $list = $(event.delegateTarget)
+    var $list = $toolbarTab
       // Set an open class on the tab wrapper.
       .toggleClass('open', open)
       .find('.responsive-preview-options');
@@ -89,10 +95,10 @@
    * When first toggled on, the layout preview component is built. All
    * subsequent toggles hide or show the built component.
    *
-   * @param {Object} event
+   * @param Object event
    *   jQuery Event object.
    *
-   * @param {Boolean} activate
+   * @param Boolean activate
    *   A boolean that forces the preview to show (true) or to hide (false).
    */
   function toggleLayoutPreview (event, activate) {
@@ -113,7 +119,7 @@
   /**
    * Assembles a layout preview.
    */
-  function buildpreview (window) {
+  function buildpreview () {
     $(parentWindow.document.body).once('responsive-preview-container', function (index, element) {
       $container = $(Drupal.theme('layoutContainer'));
 
@@ -153,10 +159,10 @@
   /**
    * Updates the dimension variables of the preview components.
    *
-   * @param {Object} dimensions
+   * @param Object dimensions
    *   An object with the following properties:
-   *    - {Number} width: The width the preview should be set to.
-   *    - {Number} height (optional): The height the preview should be set to.
+   *    - Number width: The width the preview should be set to.
+   *    - Number height (optional): The height the preview should be set to.
    *
    * @todo dimensions.height is not yet being used.
    */
@@ -182,7 +188,7 @@
   /**
    * Handles refreshing the layout toolbar tab positioning.
    *
-   * @param {Object} event
+   * @param Object event
    *   jQuery Event object.
    */
   function handleWindowToolbarResize (event) {
@@ -200,7 +206,7 @@
   /**
    * Resizes the preview iframe to the configured dimensions of a device.
    *
-   * @param {Object} event
+   * @param Object event
    *   A jQuery event object.
    */
   function loadDevicePreview (event) {
@@ -216,12 +222,10 @@
   /**
    * Redraws the layout preview component based on the stored dimensions.
    *
-   * @param {Object} event
+   * @param Object event
    *   A jQuery event object.
    */
   function refreshPreviewSizing (event) {
-    // Take RTL text direction into account.
-    var dir = document.getElementsByTagName('html')[0].getAttribute('dir');
     var edge = (dir === 'rtl') ? 'right' : 'left';
     var options = {
       width: size
@@ -238,10 +242,10 @@
   /**
    * Get the total displacement of given region.
    *
-   * @param {String} region
+   * @param String region
    *   Region name. Either "top" or "bottom".
    *
-   * @return {Number}
+   * @return Number
    *   The total displacement of given region in pixels.
    */
   function getDisplacement (region) {
@@ -263,74 +267,18 @@
    * correctEdgeCollisions.call($('div'));
    */
   function correctEdgeCollisions () {
-    // Clear any previous corrections.
-    clearStyling.call(this, ['top', 'right', 'bottom', 'left']);
+    // The position of the dropdown depends on the language direction.
+    var edge = (dir === 'rtl') ? 'left' : 'right';
     // Go through each element and correct edge collisions.
     return this.each(function (index, element) {
-      var $this = $(this);
-      var width = $this.width();
-      var height = $this.height();
-      var clientW = document.documentElement.clientWidth;
-      var clientH = document.documentElement.clientHeight;
-      var collisions = {
-        'top': null,
-        'right': null,
-        'bottom': null,
-        'left': null
-      };
-      // Determine if the element is too big for the document. Resize to fit.
-      if (width > clientW) {
-        $this.width(clientW);
-        // If the element is too wide, it will collide on both left and right.
-        collisions.left = true;
-        collisions.right = true;
-      }
-      if (height > clientH) {
-        $this.height(clientH);
-        // If the element is too high, it will collide on both top and bottom.
-        collisions.top = true;
-        collisions.bottom = true;
-      }
-      // Check each edge for a collision.
-      if (!collisions.top && $this.position().top < 0) {
-        collisions.top = true;
-      }
-      if (!collisions.right && (($this.offset().left + width) > clientW)) {
-        collisions.right = true;
-      }
-      if (!collisions.bottom && (($this.position().top + height) > clientH)) {
-        collisions.bottom = true;
-      }
-      if (!collisions.left && $this.offset().left < 0) {
-        collisions.left = true;
-      }
-      // Set the offset to zero for any collision on an edge.
-      for (var edge in collisions) {
-        if (collisions.hasOwnProperty(edge)) {
-          if (collisions[edge]) {
-            $this.css(edge, 0);
-          }
-        }
-      }
-    });
-  }
-
-  /**
-   * Clears any previous styling.
-   *
-   * This should be invoked against a jQuery set like this:
-   * clearStyling.call($('div'), ['left','right']);
-   *
-   * @param {Array} styles
-   *   An array of strings where each string is the name of a CSS property.
-   */
-  function clearStyling (styles) {
-    return this.each(function (index, element) {
-      for (var i = 0; i < styles.length; i++) {
-        if ('style' in this && styles[i] in this.style) {
-          this.style[styles[i]] = "";
-        }
-      }
+      $(this)
+        // Invoke jQuery UI position on the device options.
+        .position({
+          'my': edge +' top',
+          'at': edge + ' bottom',
+          'of': $toolbarTab,
+          'collision': 'flip fit'
+        });
     });
   }
 
@@ -340,7 +288,7 @@
    * This should be invoked against a jQuery set like this:
    * prunePreviewChoices.call($('div'), 20);
    *
-   * @param {Number} tolerance
+   * @param Number tolerance
    *   The distance from the edge of the window that a device cannot exceed
    *   or it will be pruned from the list.
    */

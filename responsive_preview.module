@@ -6,6 +6,22 @@
  */
 
 /**
+ * Implements hook_help().
+ */
+function responsive_preview_help($path, $arg) {
+
+  switch ($path) {
+    case 'admin/help#responsive_preview':
+      $output = '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('The Responsive Preview module provides a quick way to preview a page on your site within the dimensions of many popular device and screen sizes.') . '</p>';
+      $output .= '<h3>' . t('Uses') . '</h3>';
+      $output .= '<p>' . t('To launch a preview, first click the toolbar tab with the small device icon. The tab has the title "@title". A list of devices will appear. Selecting a device name will launch a preview of the current page within the dimensions of that device.', array('@title' => t('Preview page layout'))) . '</p>';
+      $output .= '<p>' . t('To close the preview, click the close button signified visually by an x.') . '</p>';
+      return $output;
+  }
+}
+
+/**
  * Returns a list of devices and their properties from configuration.
  */
 function responsive_preview_get_devices_list() {
@@ -108,6 +124,7 @@ function responsive_preview_library_info() {
     'dependencies' => array(
       array('system', 'jquery'),
       array('system', 'drupal'),
+      array('system', 'jquery.ui.position'),
     ),
   );
 

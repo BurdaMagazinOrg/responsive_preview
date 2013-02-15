@@ -19,7 +19,11 @@
   right: auto;
 }
 .responsive-preview-toolbar-tab.open:before {
-  left: 0.3em;
+  left: 0;
+  right: auto;
+}
+.responsive-preview-toolbar-tab.open .trigger:after {
+  left: 0.7em;
   right: auto;
 }
 
