@@ -33,16 +33,15 @@ function responsive_preview_get_devices_list() {
     $links[$name] = array(
       'title' => $info['label'],
       'href' => '',
-      'fragment' => '!',
-      'exteranl' => TRUE,
       'options' => array(
         'fragment' => '!',
-        'exteranl' => TRUE,
+        'external' => TRUE,
       ),
       'attributes' => array(
         'class' => array('responsive-preview-device'),
         'data-responsive-preview-width' => ($info['dimensions']['width']) ? $info['dimensions']['width'] : '',
         'data-responsive-preview-height' => ($info['dimensions']['height']) ? $info['dimensions']['height'] : '',
+        'data-responsive-preview-dppx' => ($info['dimensions']['dppx']) ? $info['dimensions']['dppx'] : '1',
       ),
     );
   }
@@ -72,7 +71,7 @@ function responsive_preview_toolbar() {
         '#value_suffix' => '</span>',
         '#attributes' => array(
           'id' => 'responsive-preview',
-          'title' => "Preview page layout",
+          'title' => t('Preview page layout'),
           'class' => array('icon', 'icon-responsive-preview', 'trigger'),
         ),
       ),
@@ -85,6 +84,7 @@ function responsive_preview_toolbar() {
       ),
     ),
     '#wrapper_attributes' => array(
+      'id' => 'toolbar-tab-responsive-preview',
       'class' => array('responsive-preview-toolbar-tab'),
     ),
     '#attached' => array(
@@ -103,7 +103,6 @@ function responsive_preview_toolbar() {
  * Implements hook_library().
  */
 function responsive_preview_library_info() {
-  $libraries = array();
   $path = drupal_get_path('module', 'responsive_preview');
   $options = array(
     'scope' => 'footer',
@@ -112,7 +111,6 @@ function responsive_preview_library_info() {
 
   $libraries['responsive-preview'] = array(
     'title' => 'Preview layouts',
-    'website' => 'http://drupal.org/project/responsive_preview',
     'version' => VERSION,
     'css' => array(
       $path . '/css/responsive-preview.base.css',
@@ -124,6 +122,7 @@ function responsive_preview_library_info() {
     'dependencies' => array(
       array('system', 'jquery'),
       array('system', 'drupal'),
+      array('system', 'backbone'),
       array('system', 'jquery.ui.position'),
     ),
   );

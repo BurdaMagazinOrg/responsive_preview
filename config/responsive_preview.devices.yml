@@ -1,61 +1,42 @@
+# References:
+# - http://en.wikipedia.org/wiki/List_of_displays_by_pixel_density
+# - http://www.w3.org/blog/CSS/2012/06/14/unprefix-webkit-device-pixel-ratio/
+# - http://pieroxy.net/blog/2012/10/18/media_features_of_the_most_common_devices.html
+
 devices:
   iphone:
     label: iPhone 5
     dimensions:
       width: 640
       height: 1136
+      dppx: 2
   iphone4:
     label: iPhone 4
     dimensions:
       width: 640
       height: 960
-  iphone3gs:
-    label: iPhone 3GS
-    dimensions:
-      width: 320
-      height: 480
-  ipadmini:
-    label: iPad mini
-    dimensions:
-      width: 768
-      height: 1024
-  ipad4:
-    label: iPad 3/4
+      dppx: 2
+  ipad:
+    label: iPad
     dimensions:
       width: 1536
       height: 2048
-  ipad2:
-    label: iPad 2
+      dppx: 2
+  nexus4:
+    label: Nexus 4
     dimensions:
       width: 768
-      height: 1024
-  kindlefire:
-    label: Kindle Fire
-    dimensions:
-      width: 600
-      height: 1024
-  kindlefirehd:
-    label: Kindle Fire HD
-    dimensions:
-      width: 800
       height: 1280
-  nooktablet:
-    label: Nook Tablet
-    dimensions:
-      width: 600
-      height: 1024
+      dppx: 2
   nexus7:
     label: Nexus 7
     dimensions:
       width: 800
       height: 1280
-  surface:
-    label: Microsoft Surface
-    dimensions:
-      width: 768
-      height: 1366
+      dppx: 1.3
   desktop:
     label: Typical desktop
     dimensions:
       width: 1366
       height: 768
+      dppx: 1

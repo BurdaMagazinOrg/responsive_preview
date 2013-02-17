@@ -30,6 +30,9 @@
     float: right; /* LTR */
   }
 }
+.responsive-preview-toolbar-tab .trigger {
+  display: block;
+}
 .responsive-preview-toolbar-tab .responsive-preview-options {
   display: none;
   z-index: 1;
@@ -70,7 +73,7 @@
   left: 0;
   position: fixed;
   right: 0;
-  top: 3em;
+  top: 0;
   width: 100%;
   z-index: 1;
 }
@@ -83,6 +86,10 @@
   position: relative;
   width: 100%;
   z-index: 100;
+  -webkit-transition: all 150ms ease-out;
+     -moz-transition: all 150ms ease-out;
+       -o-transition: all 150ms ease-out;
+          transition: all 150ms ease-out;
 }
 
 /**
