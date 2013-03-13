@@ -7,30 +7,24 @@
  * Toolbar tab.
  */
 
-/* Toolbar icon. */
-.toolbar .bar .responsive-preview-toolbar-tab .icon-responsive-preview:before {
-  left: auto;
-  right: 1em;
-}
-
 /* Toolbar tab triangle toggle. */
-.responsive-preview-toolbar-tab .trigger:after {
+.toolbar-tab-responsive-preview .trigger:after {
   left: 1em;
   right: auto;
 }
-.responsive-preview-toolbar-tab.open:before {
+.toolbar-tab-responsive-preview.open:before {
   left: 0;
   right: auto;
 }
-.responsive-preview-toolbar-tab.open .trigger:after {
+.toolbar-tab-responsive-preview.open .trigger:after {
   left: 0.7em;
   right: auto;
 }
-
-/**
- * Preview container.
- */
-#responsive-preview-close {
-  margin-left: 0;
-  margin-right: 10px;
+.responsive-preview .control.close {
+  left: 0;
+  right: auto;
+}
+.responsive-preview .control.orientation {
+  left: auto;
+  right: 0;
 }

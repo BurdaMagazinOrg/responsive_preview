@@ -14,33 +14,30 @@
 /**
  * Toolbar tab.
  */
-.responsive-preview-toolbar-tab {
+.toolbar-tab-responsive-preview {
   display: none;
 }
 /* At narrow screen widths, float the tab to the left so it falls in line with
  * the rest of the toolbar tabs. */
-.js .toolbar .bar .responsive-preview-toolbar-tab.tab {
+.js .toolbar .bar .toolbar-tab-responsive-preview.tab {
   display: block;
-  float: left; /* LTR */
+  float: right; /* LTR */
   position: relative;
 }
-/* At wide widths, float the tab to the right. */
-@media only screen and (min-width: 36em) {
-  .js .toolbar .bar .responsive-preview-toolbar-tab.tab {
-    float: right; /* LTR */
-  }
-}
-.responsive-preview-toolbar-tab .trigger {
+.toolbar-tab-responsive-preview .trigger {
   display: block;
 }
-.responsive-preview-toolbar-tab .responsive-preview-options {
+/* Device preview options. */
+.toolbar-tab-responsive-preview .item-list {
   display: none;
+  position: absolute;
+  white-space: nowrap;
   z-index: 1;
 }
-.responsive-preview-toolbar-tab.open .responsive-preview-options {
+.toolbar-tab-responsive-preview.open .item-list {
   display: block;
 }
-.js .responsive-preview-toolbar-tab.tab .responsive-preview-options li {
+.js .toolbar-tab-responsive-preview.tab .options li {
   float: none;
 }
 
@@ -49,47 +46,45 @@
  *
  * The container is kept offscreen after it is built and has been disabled.
  */
-#responsive-preview-container {
+.responsive-preview {
   bottom: 0;
-  display: none;
   height: 100%;
   left: -200%; /* LTR */
-  position: fixed;
+  position: relative;
   top: 0;
   width: 100%;
   z-index: 1050;
 }
-#responsive-preview-container.active {
-  display: block;
+.responsive-preview.active {
   left: 0; /* LTR */
+  position: fixed;
 }
-#responsive-preview-close {
+.responsive-preview .control {
   position: absolute;
-  z-index: 75;
 }
-.responsive-preview-modal-background {
+.responsive-preview .modal-background {
   bottom: 0;
   height: 100%;
   left: 0;
-  position: fixed;
+  position: static;
   right: 0;
   top: 0;
   width: 100%;
   z-index: 1;
 }
+.responsive-preview.active .modal-background {
+  position: fixed;
+}
 
 /**
  * Preview iframe.
  */
-#responsive-preview-container iframe {
-  height: 100%;
-  position: relative;
-  width: 100%;
+.responsive-preview .frame-container {
+  position: absolute;
   z-index: 100;
-  -webkit-transition: all 150ms ease-out;
-     -moz-transition: all 150ms ease-out;
-       -o-transition: all 150ms ease-out;
-          transition: all 150ms ease-out;
+}
+.responsive-preview .frame-container iframe {
+  position: relative;
 }
 
 /**

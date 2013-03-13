@@ -25,20 +25,17 @@ function responsive_preview_help($path, $arg) {
  * Returns a list of devices and their properties from configuration.
  */
 function responsive_preview_get_devices_list() {
-  $devices = config('responsive_preview.devices')->get('devices');
+  $devices = config('responsive_preview.devices')->get();
 
   $links = array();
 
   foreach($devices as $name => $info) {
     $links[$name] = array(
-      'title' => $info['label'],
-      'href' => '',
-      'options' => array(
-        'fragment' => '!',
-        'external' => TRUE,
-      ),
-      'attributes' => array(
-        'class' => array('responsive-preview-device'),
+      '#theme' => 'html_tag',
+      '#tag' => 'button',
+      '#value' => $info['label'],
+      '#attributes' => array(
+        'class' => array('device', 'icon', 'icon-active'),
         'data-responsive-preview-width' => ($info['dimensions']['width']) ? $info['dimensions']['width'] : '',
         'data-responsive-preview-height' => ($info['dimensions']['height']) ? $info['dimensions']['height'] : '',
         'data-responsive-preview-dppx' => ($info['dimensions']['dppx']) ? $info['dimensions']['dppx'] : '1',
@@ -70,22 +67,21 @@ function responsive_preview_toolbar() {
         '#value_prefix' => '<span class="element-invisible">',
         '#value_suffix' => '</span>',
         '#attributes' => array(
-          'id' => 'responsive-preview',
           'title' => t('Preview page layout'),
           'class' => array('icon', 'icon-responsive-preview', 'trigger'),
         ),
       ),
       'device_options' => array(
-        '#theme' => 'links',
-        '#links' => responsive_preview_get_devices_list(),
+        '#theme' => 'item_list',
+        '#items' => responsive_preview_get_devices_list(),
         '#attributes' => array(
-          'class' => array('responsive-preview-options'),
+          'class' => array('options'),
         ),
       ),
     ),
     '#wrapper_attributes' => array(
-      'id' => 'toolbar-tab-responsive-preview',
-      'class' => array('responsive-preview-toolbar-tab'),
+      'id' => 'responsive-preview-toolbar-tab',
+      'class' => array('toolbar-tab-responsive-preview'),
     ),
     '#attached' => array(
       'library' => array(
@@ -115,6 +111,7 @@ function responsive_preview_library_info() {
     'css' => array(
       $path . '/css/responsive-preview.base.css',
       $path . '/css/responsive-preview.theme.css',
+      $path . '/css/responsive-preview.icons.css',
     ),
     'js' => array(
       $path . '/js/responsive-preview.js' => $options,
@@ -128,4 +125,49 @@ function responsive_preview_library_info() {
   );
 
   return $libraries;
+}
+
+/**
+ * Implements hook_testswarm_tests().
+ */
+function responsive_preview_testswarm_tests() {
+
+  $path = drupal_get_path('module', 'responsive_preview');
+
+  return array(
+    'responsivePreview' => array(
+      'module' => 'responsive_preview',
+      'description' => 'Test the responsive preview module.',
+      'js' => array(
+        $path . '/tests/testswarm/responsive_preview.tests.js' => array(),
+        array(
+          'data' => array(
+            'responsive_preview' => array(
+              'devices' => config('responsive_preview.devices')->get()
+            ),
+          ),
+          'type' => 'setting',
+        ),
+      ),
+      'dependencies' => array(
+        array('system', 'jquery'),
+        array('system', 'drupalSettings'),
+        array('testswarm', 'jquery.simulate'),
+      ),
+      'path' => '',
+      'permissions' => array()
+    ),
+    'responsivePreviewAdmin' => array(
+      'module' => 'responsive_preview',
+      'description' => 'Test the responsive preview module admin.',
+      'js' => array(
+        $path . '/tests/testswarm/responsive_preview.admin.tests.js' => array(),
+      ),
+      'dependencies' => array(
+        array('system', 'jquery'),
+      ),
+      'path' => 'admin',
+      'permissions' => array()
+    ),
+  );
 }
