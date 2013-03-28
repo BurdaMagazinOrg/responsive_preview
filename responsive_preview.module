@@ -28,7 +28,6 @@ function responsive_preview_get_devices_list() {
   $devices = config('responsive_preview.devices')->get();
 
   $links = array();
-
   foreach($devices as $name => $info) {
     $links[$name] = array(
       '#theme' => 'html_tag',
@@ -36,9 +35,10 @@ function responsive_preview_get_devices_list() {
       '#value' => $info['label'],
       '#attributes' => array(
         'class' => array('device', 'icon', 'icon-active'),
-        'data-responsive-preview-width' => ($info['dimensions']['width']) ? $info['dimensions']['width'] : '',
-        'data-responsive-preview-height' => ($info['dimensions']['height']) ? $info['dimensions']['height'] : '',
-        'data-responsive-preview-dppx' => ($info['dimensions']['dppx']) ? $info['dimensions']['dppx'] : '1',
+        'data-responsive-preview-name' => $name,
+        'data-responsive-preview-width' => (!empty($info['dimensions']['width'])) ? $info['dimensions']['width'] : '',
+        'data-responsive-preview-height' => (!empty($info['dimensions']['height'])) ? $info['dimensions']['height'] : '',
+        'data-responsive-preview-dppx' => (!empty($info['dimensions']['dppx'])) ? $info['dimensions']['dppx'] : '1',
       ),
     );
   }
@@ -56,7 +56,6 @@ function responsive_preview_access() {
  * Implements hook_toolbar().
  */
 function responsive_preview_toolbar() {
-
   $items['responsive_preview'] = array(
     '#type' => 'toolbar_item',
     'tab' => array(

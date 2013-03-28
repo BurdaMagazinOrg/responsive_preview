@@ -34,20 +34,36 @@ Drupal.behaviors.responsivePreview = {
       var previewModel = new Drupal.responsivePreview.models.PreviewStateModel();
 
       // The toolbar tab view.
-      var tabView = new Drupal.responsivePreview.views.TabView({
-        el: $(context).find('#responsive-preview-toolbar-tab'),
-        model: tabModel,
-        envModel: envModel,
-        // Gutter size around preview frame.
-        gutter: options.gutter,
-        // Preview device frame width.
-        bleed: options.bleed
-      });
+      var $tab = $(context).find('#responsive-preview-toolbar-tab');
+      if ($tab.length > 0) {
+        var tabView = new Drupal.responsivePreview.views.TabView({
+          el: $tab.get(),
+          model: previewModel,
+          tabModel: tabModel,
+          envModel: envModel,
+          // Gutter size around preview frame.
+          gutter: options.gutter,
+          // Preview device frame width.
+          bleed: options.bleed
+        });
+      }
+      // The control block view.
+      var $block = $(context).find('#block-responsive-preview-controls');
+      if ($block.length > 0) {
+        var blockView = new Drupal.responsivePreview.views.BlockView({
+          el: $block.get(),
+          model: previewModel,
+          envModel: envModel,
+          // Gutter size around preview frame.
+          gutter: options.gutter,
+          // Preview device frame width.
+          bleed: options.bleed
+        });
+      }
       // The preview container view.
       var previewView = new Drupal.responsivePreview.views.PreviewView({
         el: Drupal.theme('responsivePreviewContainer'),
         model: previewModel,
-        tabModel: tabModel,
         envModel: envModel,
         // Gutter size around preview frame.
         gutter: options.gutter,
@@ -118,10 +134,22 @@ Drupal.responsivePreview.models.EnvironmentModel = Backbone.Model.extend({
  */
 Drupal.responsivePreview.models.TabStateModel = Backbone.Model.extend({
   defaults: {
+    // The state of toolbar list of available device previews.
+    isDeviceListOpen: false
+  }
+});
+
+/**
+ * Backbone Model for the Responsive Preview preview state.
+ */
+Drupal.responsivePreview.models.PreviewStateModel = Backbone.Model.extend({
+  defaults: {
     // The state of the preview.
     isActive: false,
-    // The state of toolbar list if available device previews.
-    isDeviceListOpen: false,
+    // Indicates whether the preview iframe has been built.
+    isBuilt: false,
+    // Indicates whether the device is portrait (false) or landscape (true).
+    isRotated: false,
     // The number of devices that fit the current viewport (i.e. previewable).
     fittingDeviceCount: 0,
     // Currently selected device link.
@@ -139,25 +167,12 @@ Drupal.responsivePreview.models.TabStateModel = Backbone.Model.extend({
 });
 
 /**
- * Backbone Model for the Responsive Preview preview state.
- */
-Drupal.responsivePreview.models.PreviewStateModel = Backbone.Model.extend({
-  defaults: {
-    // Indicates whether the preview iframe has been built.
-    isBuilt: false,
-    // Indicates whether the device is portrait (false) or landscape (true).
-    isRotated: false
-  }
-});
-
-/**
  * Handles responsive preview toolbar tab interactions.
  */
 Drupal.responsivePreview.views.TabView = Backbone.View.extend({
   events: {
     'click': 'toggleDeviceList',
     'mouseleave': 'toggleDeviceList',
-    'click .device': 'selectDevice'
   },
 
   /**
@@ -166,10 +181,19 @@ Drupal.responsivePreview.views.TabView = Backbone.View.extend({
   initialize: function () {
     this.gutter = this.options.gutter;
     this.bleed = this.options.bleed;
+    this.tabModel = this.options.tabModel;
     this.envModel = this.options.envModel;
 
-    this.model.on('change:isActive change:isDeviceListOpen change:fittingDeviceCount change:activeDevice', this.render, this);
-    this.envModel.on('change:viewportWidth', this.updateDeviceList, this);
+    // The selectDevice function is declared outside of the view because it is
+    // shared among views. It must be bound to this for the correct context
+    // to obtain.
+    this.$el.on('click.responsivePreview', '.device', $.proxy(selectDevice, this));
+
+    this.model.on('change:isActive change:dimensions change:activeDevice change:fittingDeviceCount', this.render, this);
+
+    this.tabModel.on('change:isDeviceListOpen', this.render, this);
+
+    this.envModel.on('change:viewportWidth', updateDeviceList, this);
     this.envModel.on('change:viewportWidth', this.correctDeviceListEdgeCollision, this);
   },
 
@@ -178,25 +202,29 @@ Drupal.responsivePreview.views.TabView = Backbone.View.extend({
    */
   render: function () {
     var $deviceLink = $(this.model.get('activeDevice'));
+    var name = $deviceLink.data('responsive-preview-name');
     var isActive = this.model.get('isActive');
-    var isDeviceListOpen = this.model.get('isDeviceListOpen');
+    var isDeviceListOpen = this.tabModel.get('isDeviceListOpen');
     this.$el
       // Render the visibility of the toolbar tab.
       .toggle(this.model.get('fittingDeviceCount') > 0)
       // Toggle the display of the device list.
-      .toggleClass('open', isDeviceListOpen)
-      // Render the state of the toolbar tab button.
+      .toggleClass('open', isDeviceListOpen);
+
+    // Render the state of the toolbar tab button.
+    this.$el
       .find('> button')
       .toggleClass('active', isActive)
-      .attr('aria-pressed', isActive)
-      // Return to $el.
-      .end()
+      .attr('aria-pressed', isActive);
+
+    // Clean the active class from the device list.
+    this.$el
       .find('.device.active')
-      .removeClass('active')
-      // Return to $el.
-      .end()
-      .find($deviceLink)
-      .addClass('active');
+      .removeClass('active');
+
+    this.$el
+      .find('[data-responsive-preview-name="' + name + '"]')
+      .toggleClass('active', isActive);
     // When the preview is active, a class on the body is necessary to impose
     // styling to aid in the display of the preview element.
     $('body').toggleClass('responsive-preview-active', isActive);
@@ -216,10 +244,10 @@ Drupal.responsivePreview.views.TabView = Backbone.View.extend({
   toggleDeviceList: function (event) {
     // Force the options list closed on mouseleave.
     if (event.type === 'mouseleave') {
-      this.model.set('isDeviceListOpen', false);
+      this.tabModel.set('isDeviceListOpen', false);
     }
     else {
-      this.model.set('isDeviceListOpen', !this.model.get('isDeviceListOpen'));
+      this.tabModel.set('isDeviceListOpen', !this.model.get('isDeviceListOpen'));
     }
 
     event.preventDefault();
@@ -241,54 +269,103 @@ Drupal.responsivePreview.views.TabView = Backbone.View.extend({
         'of': this.$el,
         'collision': 'flip fit'
       });
+  }
+});
+
+/**
+ * Handles responsive preview control block interactions.
+ */
+Drupal.responsivePreview.views.BlockView = Backbone.View.extend({
+
+  /**
+   * Implements Backbone.View.prototype.initialize().
+   */
+  initialize: function () {
+    this.gutter = this.options.gutter;
+    this.bleed = this.options.bleed;
+    this.envModel = this.options.envModel;
+
+    // The selectDevice function is declared outside of the view because it is
+    // shared among views. It must be bound to this for the correct context
+    // to obtain.
+    this.$el.on('click.responsivePreview', '.device', $.proxy(selectDevice, this));
+
+    this.model.on('change:isActive change:dimensions change:activeDevice change:fittingDeviceCount', this.render, this);
+
+    this.envModel.on('change:viewportWidth', updateDeviceList, this);
   },
 
   /**
-   * Model change handler; hides devices that don't fit the current viewport.
+   * Implements Backbone.View.prototype.render().
    */
-  updateDeviceList: function () {
-    var gutter = this.gutter;
-    var bleed = this.bleed;
-    var viewportWidth = this.envModel.get('viewportWidth');
-    var $devices = this.$el.find('.device');
+  render: function () {
+    var $deviceLink = $(this.model.get('activeDevice'));
+    var name = $deviceLink.data('responsive-preview-name');
+    var isActive = this.model.get('isActive');
+    this.$el
+      // Render the visibility of the toolbar block.
+      .toggle(this.model.get('fittingDeviceCount') > 0)
+      .find('.device.active')
+      .removeClass('active');
 
-    // Remove devices whose previews won't fit the current viewport.
-    $devices.each(function (index, element) {
-      var $this = $(this);
-      var width = parseInt($this.data('responsive-preview-width'), 10);
-      var dppx = parseFloat($this.data('responsive-preview-dppx'), 10);
-      var previewWidth = width / dppx;
-      var fits = ((previewWidth + (gutter * 2) + (bleed * 2)) <= viewportWidth);
-      $this.parent('li').toggleClass('element-hidden', !fits);
-    });
-    // Set the number of devices that fit the current viewport.
-    this.model.set('fittingDeviceCount', $devices.parent('li').not('.element-hidden').length);
-  },
+    this.$el
+      .find('[data-responsive-preview-name="' + name + '"]')
+      .addClass('active');
+    // When the preview is active, a class on the body is necessary to impose
+    // styling to aid in the display of the preview element.
+    $('body').toggleClass('responsive-preview-active', isActive);
+    return this;
+  }
+});
 
-  /**
-   * Updates the model to reflect the properties of the chosen device.
-   *
-   * @param Object event
-   *   A jQuery event object.
-   */
-  selectDevice: function (event) {
-    var $link = $(event.target);
-    // Update the device dimensions.
-    this.model.set({
-      'activeDevice': $link.get(0),
-      'dimensions': {
-        'width': parseInt($link.data('responsive-preview-width'), 10),
-        'height': parseInt($link.data('responsive-preview-height'), 10),
-        'dppx': parseFloat($link.data('responsive-preview-dppx'), 10)
-      }
-    });
-    // Toggle the preview on.
-    this.model.set('isActive', true);
+/**
+ * Functions that are common to both the TabView and BlockView.
+ */
+
+/**
+ * Model change handler; hides devices that don't fit the current viewport.
+ */
+function updateDeviceList () {
+  var gutter = this.gutter;
+  var bleed = this.bleed;
+  var viewportWidth = this.envModel.get('viewportWidth');
+  var $devices = this.$el.find('.device');
+
+  // Remove devices whose previews won't fit the current viewport.
+  $devices.each(function (index, element) {
+    var $this = $(this);
+    var width = parseInt($this.data('responsive-preview-width'), 10);
+    var dppx = parseFloat($this.data('responsive-preview-dppx'), 10);
+    var previewWidth = width / dppx;
+    var fits = ((previewWidth + (gutter * 2) + (bleed * 2)) <= viewportWidth);
+    $this.parent('li').toggleClass('element-hidden', !fits);
+  });
+  // Set the number of devices that fit the current viewport.
+  this.model.set('fittingDeviceCount', $devices.parent('li').not('.element-hidden').length);
+}
+
+/**
+ * Updates the model to reflect the properties of the chosen device.
+ *
+ * @param Object event
+ *   A jQuery event object.
+ */
+function selectDevice (event) {
+  var $link = $(event.target);
+  // Update the device dimensions.
+  this.model.set({
+    'activeDevice': $link.get(0),
+    'dimensions': {
+      'width': parseInt($link.data('responsive-preview-width'), 10),
+      'height': parseInt($link.data('responsive-preview-height'), 10),
+      'dppx': parseFloat($link.data('responsive-preview-dppx'), 10)
+    }
+  });
+  // Toggle the preview on.
+  this.model.set('isActive', true);
 
     event.preventDefault();
   }
-
-});
 
 /**
  * Handles the responsive preview element interactions.
@@ -310,9 +387,7 @@ Drupal.responsivePreview.views.PreviewView = Backbone.View.extend({
     this.tabModel = this.options.tabModel;
     this.envModel = this.options.envModel;
 
-    this.model.on('change:isRotated', this.render, this);
-
-    this.tabModel.on('change:isActive change:dimensions change:activeDevice', this.render, this);
+    this.model.on('change:isActive change:isRotated change:dimensions change:activeDevice', this.render, this);
 
     // Recalculate the size of the preview container when the window resizes.
     this.envModel.on('change:viewportWidth', this.render, this);
@@ -322,7 +397,7 @@ Drupal.responsivePreview.views.PreviewView = Backbone.View.extend({
    * Implements Backbone.View.prototype.render().
    */
   render: function () {
-    var isActive = this.tabModel.get('isActive');
+    var isActive = this.model.get('isActive');
 
     // Build the preview if it doesn't exist.
     if (isActive && !this.model.get('isBuilt')) {
@@ -353,7 +428,7 @@ Drupal.responsivePreview.views.PreviewView = Backbone.View.extend({
    *   A jQuery event object.
    */
   onClose: function (event) {
-    this.tabModel.set('isActive', false);
+    this.model.set('isActive', false);
   },
 
   /**
@@ -411,7 +486,7 @@ Drupal.responsivePreview.views.PreviewView = Backbone.View.extend({
    */
   _refresh: function () {
     var isRotated = this.model.get('isRotated');
-    var $deviceLink = $(this.tabModel.get('activeDevice'));
+    var $deviceLink = $(this.model.get('activeDevice'));
     var $container = this.$el.find('#responsive-preview-frame-container');
     var $frame = $container.find('> iframe');
 
@@ -420,14 +495,16 @@ Drupal.responsivePreview.views.PreviewView = Backbone.View.extend({
     var minGutter = this.gutter;
 
     // Get current (dynamic) state.
-    var dimensions = this.tabModel.get('dimensions');
+    var dimensions = this.model.get('dimensions');
     var isRotated = this.model.get('isRotated');
     var viewportWidth = this.envModel.get('viewportWidth');
 
     // Calculate preview width & height. If the preview is rotated, swap width
     // and height.
-    var width = dimensions[(isRotated) ? 'height' : 'width'] / dimensions.dppx;
-    var height = dimensions[(isRotated) ? 'width' : 'height'] / dimensions.dppx;
+    var displayWidth = dimensions[(isRotated) ? 'height' : 'width'];
+    var displayHeight = dimensions[(isRotated) ? 'width' : 'height'];
+    var width = displayWidth / dimensions.dppx;
+    var height = displayHeight / dimensions.dppx;
 
     // Get the container padding and border width for the left and right.
     var bleed = this.bleed;
@@ -461,8 +538,8 @@ Drupal.responsivePreview.views.PreviewView = Backbone.View.extend({
     // Update the device label.
     $container.find('.device-label').text(Drupal.t('@label (@widthpx by @heightpx, @dpidppx, @orientation)', {
       '@label': $deviceLink.text(),
-      '@width': Math.ceil(width),
-      '@height': Math.ceil(height),
+      '@width': Math.ceil(displayWidth),
+      '@height': Math.ceil(displayHeight),
       '@dpi': dimensions.dppx,
       '@orientation': (isRotated) ? this.strings.landscape : this.strings.portrait
     }));
@@ -525,6 +602,7 @@ Drupal.responsivePreview.views.PreviewView = Backbone.View.extend({
    *  - http://tripleodeon.com/wp-content/uploads/2011/12/table.html?r=android40window.innerw&c=980
    */
   _calculateScalingCSS: function () {
+    var isRotated = this.model.get('isRotated');
     var settings = this._parseViewportMetaTag();
     var defaultLayoutWidth = 980, initialScale = 1;
     var layoutViewportWidth, layoutViewportHeight;
@@ -554,11 +632,12 @@ Drupal.responsivePreview.views.PreviewView = Backbone.View.extend({
       }
     }
 
-    // Calculate the scale, prevent excesses (ensure the (0.25, 2) range).
-    var dimensions = this.tabModel.get('dimensions');
-    visualViewPortWidth = dimensions.width / dimensions.dppx;
+    // Calculate the scale, prevent excesses (ensure the (0.25, 1) range).
+    var dimensions = this.model.get('dimensions');
+    // If the preview is rotated, width and height are swapped.
+    visualViewPortWidth = dimensions[(isRotated) ? 'height' : 'width'] / dimensions.dppx;
     var scale = initialScale * (100 / layoutViewportWidth) * (visualViewPortWidth / 100);
-    scale = Math.min(scale, 2);
+    scale = Math.min(scale, 1);
     scale = Math.max(scale, 0.25);
 
     var transform = "scale(" + scale + ")";

@@ -176,3 +176,17 @@
   -o-transition: all 150ms ease-out;
   transition: all 150ms ease-out;
 }
+
+/**
+ * Control block styling.
+ */
+#block-responsive-preview-controls .content .device {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1;
+  margin: 0;
+  padding: 0.25em 0;
+}
