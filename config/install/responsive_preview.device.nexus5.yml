@@ -1,0 +1,10 @@
+id: nexus5
+label: Nexus 5
+dimensions:
+  width: 1080
+  height: 1920
+  dppx: 3
+orientation: portrait
+status: 1
+weight: 3
+langcode: en

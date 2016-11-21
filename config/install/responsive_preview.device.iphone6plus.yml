@@ -1,0 +1,10 @@
+id: iphone6plus
+label: iPhone 6+
+dimensions:
+  width: 1080
+  height: 1980
+  dppx: 2.46
+orientation: portrait
+status: 1
+weight: 2
+langcode: en

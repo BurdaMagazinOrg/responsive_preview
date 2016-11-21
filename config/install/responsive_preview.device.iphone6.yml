@@ -1,0 +1,10 @@
+id: iphone6
+label: iPhone 6
+dimensions:
+  width: 750
+  height: 1334
+  dppx: 2
+orientation: portrait
+status: 1
+weight: 1
+langcode: en

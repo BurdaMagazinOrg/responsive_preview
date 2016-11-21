@@ -19,26 +19,30 @@
 }
 /* At narrow screen widths, float the tab to the left so it falls in line with
  * the rest of the toolbar tabs. */
-.js .toolbar .bar .toolbar-tab-responsive-preview.tab {
+.toolbar .toolbar-bar .toolbar-tab-responsive-preview.toolbar-tab {
   display: block;
   float: right; /* LTR */
   position: relative;
 }
-.toolbar-tab-responsive-preview .trigger {
+[dir="rtl"] .toolbar .toolbar-bar .toolbar-tab-responsive-preview.toolbar-tab {
+  float: left;
+}
+.toolbar-tab-responsive-preview .responsive-preview-trigger {
   display: block;
 }
 /* Device preview options. */
-.toolbar-tab-responsive-preview .item-list {
+.toolbar-tab-responsive-preview .responsive-preview-item-list {
   display: none;
   position: absolute;
   white-space: nowrap;
-  z-index: 1;
+  z-index: 512;
 }
-.toolbar-tab-responsive-preview.open .item-list {
+.toolbar-tab-responsive-preview.open .responsive-preview-item-list {
   display: block;
 }
-.js .toolbar-tab-responsive-preview.tab .options li {
+.toolbar-tab-responsive-preview.toolbar-tab .responsive-preview-options li {
   float: none;
+  position: relative;
 }
 
 /**
@@ -53,38 +57,60 @@
   position: relative;
   top: 0;
   width: 100%;
-  z-index: 1050;
+  z-index: 500;
+}
+[dir="rtl"] .responsive-preview {
+  left: auto;
+  right: -200%;
 }
 .responsive-preview.active {
   left: 0; /* LTR */
   position: fixed;
 }
-.responsive-preview .control {
+[dir="rtl"] .responsive-preview.active {
+  left: auto;
+  right: 0;
+}
+.responsive-preview-control {
   position: absolute;
 }
-.responsive-preview .modal-background {
+.responsive-preview-modal-background {
   bottom: 0;
-  height: 100%;
   left: 0;
-  position: static;
+  position: absolute;
   right: 0;
   top: 0;
-  width: 100%;
   z-index: 1;
-}
-.responsive-preview.active .modal-background {
-  position: fixed;
 }
 
 /**
  * Preview iframe.
  */
-.responsive-preview .frame-container {
+.responsive-preview-frame-container {
   position: absolute;
   z-index: 100;
 }
-.responsive-preview .frame-container iframe {
+.responsive-preview-frame-container iframe {
+  display: block;
   position: relative;
+}
+
+/**
+ * Scroll container.
+ */
+#responsive-preview-scroll-track {
+  bottom: 0;
+  left: 0;
+  overflow: visible;
+  position: absolute;
+  right: 0;
+  top: 0;
+  z-index: 1;
+}
+#responsive-preview-scroll-pane {
+  min-height: 100%;
+  position: relative;
+  width: 100%;
 }
 
 /**
@@ -100,6 +126,16 @@ body.toolbar-tray-open.responsive-preview-frame {
 .responsive-preview-frame #toolbar-administration {
   display: none !important;
 }
+.responsive-preview-frame .node-preview-container {
+  display: none !important;
+}
 .responsive-preview-frame .contextual {
   display: none !important;
+}
+
+/**
+ * Hide contextual toolbar tab when preview is active.
+ */
+.responsive-preview-active .contextual-toolbar-tab {
+    display: none !important;
 }

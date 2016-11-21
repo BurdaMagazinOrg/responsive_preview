@@ -5,168 +5,132 @@
  * Provides a component that previews the a page in various device dimensions.
  */
 
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Url;
+use Drupal\responsive_preview\Entity\Device;
+
 /**
  * Implements hook_help().
  */
-function responsive_preview_help($path, $arg) {
-
-  switch ($path) {
-    case 'admin/help#responsive_preview':
+function responsive_preview_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.responsive_preview':
       $output = '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('The Responsive Preview module provides a quick way to preview a page on your site within the dimensions of many popular device and screen sizes.') . '</p>';
       $output .= '<h3>' . t('Uses') . '</h3>';
-      $output .= '<p>' . t('To launch a preview, first click the toolbar tab with the small device icon. The tab has the title "@title". A list of devices will appear. Selecting a device name will launch a preview of the current page within the dimensions of that device.', array('@title' => t('Preview page layout'))) . '</p>';
+      $output .= '<p>' . t('To launch a preview, first click the toolbar tab with the small device icon. The tab has the title "Preview page layout". A list of devices will appear. Selecting a device name will launch a preview of the current page within the dimensions of that device.') . '</p>';
       $output .= '<p>' . t('To close the preview, click the close button signified visually by an x.') . '</p>';
       return $output;
   }
 }
 
 /**
- * Returns a list of devices and their properties from configuration.
- */
-function responsive_preview_get_devices_list() {
-  $devices = config('responsive_preview.devices')->get();
-
-  $links = array();
-  foreach($devices as $name => $info) {
-    $links[$name] = array(
-      '#theme' => 'html_tag',
-      '#tag' => 'button',
-      '#value' => $info['label'],
-      '#attributes' => array(
-        'class' => array('device', 'icon', 'icon-active'),
-        'data-responsive-preview-name' => $name,
-        'data-responsive-preview-width' => (!empty($info['dimensions']['width'])) ? $info['dimensions']['width'] : '',
-        'data-responsive-preview-height' => (!empty($info['dimensions']['height'])) ? $info['dimensions']['height'] : '',
-        'data-responsive-preview-dppx' => (!empty($info['dimensions']['dppx'])) ? $info['dimensions']['dppx'] : '1',
-      ),
-    );
-  }
-  return $links;
-}
-
-/**
- * Prevents the preview tab from rendering on administration pages.
- */
-function responsive_preview_access() {
-  return !path_is_admin(current_path());
-}
-
-/**
  * Implements hook_toolbar().
  */
 function responsive_preview_toolbar() {
-  $items['responsive_preview'] = array(
-    '#type' => 'toolbar_item',
-    'tab' => array(
-      'trigger' => array(
-        '#theme' => 'html_tag',
-        '#tag' => 'button',
-        '#value' => t('Layout preview'),
-        '#value_prefix' => '<span class="element-invisible">',
-        '#value_suffix' => '</span>',
-        '#attributes' => array(
-          'title' => t('Preview page layout'),
-          'class' => array('icon', 'icon-responsive-preview', 'trigger'),
-        ),
-      ),
-      'device_options' => array(
-        '#theme' => 'item_list',
-        '#items' => responsive_preview_get_devices_list(),
-        '#attributes' => array(
-          'class' => array('options'),
-        ),
-      ),
-    ),
-    '#wrapper_attributes' => array(
-      'id' => 'responsive-preview-toolbar-tab',
-      'class' => array('toolbar-tab-responsive-preview'),
-    ),
-    '#attached' => array(
-      'library' => array(
-        array('responsive_preview', 'responsive-preview'),
-      ),
-    ),
-    '#weight' => 200,
-    '#access' => responsive_preview_access(),
-  );
+  $device_definition = \Drupal::entityTypeManager()->getDefinition('responsive_preview_device');
+
+  $items['responsive_preview'] = [
+    '#cache' => [
+      'tags' => $device_definition->getListCacheTags(),
+      'contexts' => ['user.permissions', 'route.is_admin'],
+    ],
+  ];
+
+  $admin_route = \Drupal::service('router.admin_context')->isAdminRoute();
+  $preview_access = \Drupal::currentUser()->hasPermission('access responsive preview');
+
+  if ($preview_access && !$admin_route) {
+    $items['responsive_preview'] += [
+      '#type' => 'toolbar_item',
+      '#weight' => 50,
+      'tab' => [
+        'trigger' => [
+          '#type' => 'html_tag',
+          '#tag' => 'button',
+          '#value' => t('<span class="visually-hidden">Layout preview</span>'),
+          '#attributes' => [
+            'title' => t('Preview page layout'),
+            'class' => [
+              'responsive-preview-icon',
+              'responsive-preview-icon-responsive-preview',
+              'responsive-preview-trigger',
+            ],
+          ],
+        ],
+        'device_options' => responsive_preview_renderable_devices_list(),
+      ],
+      '#wrapper_attributes' => [
+        'id' => 'responsive-preview-toolbar-tab',
+        'class' => ['toolbar-tab-responsive-preview'],
+      ],
+      '#attached' => [
+        'library' => ['responsive_preview/drupal.responsive-preview'],
+      ],
+    ];
+  }
 
   return $items;
 }
 
 /**
- * Implements hook_library().
+ * Returns an array of enabled devices, suitable for rendering.
+ *
+ * @return array
+ *   A render array of enabled devices.
  */
-function responsive_preview_library_info() {
-  $path = drupal_get_path('module', 'responsive_preview');
-  $options = array(
-    'scope' => 'footer',
-    'attributes' => array('defer' => TRUE),
-  );
+function responsive_preview_renderable_devices_list() {
+  $links = [];
 
-  $libraries['responsive-preview'] = array(
-    'title' => 'Preview layouts',
-    'version' => VERSION,
-    'css' => array(
-      $path . '/css/responsive-preview.base.css',
-      $path . '/css/responsive-preview.theme.css',
-      $path . '/css/responsive-preview.icons.css',
-    ),
-    'js' => array(
-      $path . '/js/responsive-preview.js' => $options,
-    ),
-    'dependencies' => array(
-      array('system', 'jquery'),
-      array('system', 'drupal'),
-      array('system', 'backbone'),
-      array('system', 'jquery.ui.position'),
-    ),
-  );
+  $devices = \Drupal::entityTypeManager()
+    ->getStorage('responsive_preview_device')
+    ->loadByProperties(['status' => 1]);
 
-  return $libraries;
-}
+  uasort($devices, [Device::class, 'sort']);
 
-/**
- * Implements hook_testswarm_tests().
- */
-function responsive_preview_testswarm_tests() {
+  foreach ($devices as $name => $entity) {
+    $dimensions = $entity->getDimensions();
+    $links[$name] = [
+      '#type' => 'html_tag',
+      '#tag' => 'button',
+      '#value' => $entity->label(),
+      '#attributes' => [
+        'data-responsive-preview-name' => $name,
+        'data-responsive-preview-width' => $dimensions['width'],
+        'data-responsive-preview-height' => $dimensions['height'],
+        'data-responsive-preview-dppx' => $dimensions['dppx'],
+        'class' => [
+          'responsive-preview-device',
+          'responsive-preview-icon',
+          'responsive-preview-icon-active',
+        ],
+      ],
+    ];
+  }
 
-  $path = drupal_get_path('module', 'responsive_preview');
+  // Add a configuration link.
+  $links['configure_link'] = [
+    '#type' => 'link',
+    '#title' => t('Configure devices'),
+    '#url' => Url::fromRoute('entity.responsive_preview_device.collection'),
+    '#access' => \Drupal::currentUser()->hasPermission('administer responsive preview'),
+    '#attributes' => [
+      'class' => ['responsive-preview-configure'],
+    ],
+  ];
 
-  return array(
-    'responsivePreview' => array(
-      'module' => 'responsive_preview',
-      'description' => 'Test the responsive preview module.',
-      'js' => array(
-        $path . '/tests/testswarm/responsive_preview.tests.js' => array(),
-        array(
-          'data' => array(
-            'responsive_preview' => array(
-              'devices' => config('responsive_preview.devices')->get()
-            ),
-          ),
-          'type' => 'setting',
-        ),
-      ),
-      'dependencies' => array(
-        array('system', 'jquery'),
-        array('system', 'drupalSettings'),
-        array('testswarm', 'jquery.simulate'),
-      ),
-      'path' => '',
-      'permissions' => array()
-    ),
-    'responsivePreviewAdmin' => array(
-      'module' => 'responsive_preview',
-      'description' => 'Test the responsive preview module admin.',
-      'js' => array(
-        $path . '/tests/testswarm/responsive_preview.admin.tests.js' => array(),
-      ),
-      'dependencies' => array(
-        array('system', 'jquery'),
-      ),
-      'path' => 'admin',
-      'permissions' => array()
-    ),
-  );
+  return [
+    '#theme' => 'item_list__responsive_preview',
+    '#items' => $links,
+    '#attributes' => [
+      'class' => ['responsive-preview-options'],
+    ],
+    '#theme_wrappers' => [
+      'container' => [
+        '#attributes' => [
+          'class' => ['responsive-preview-item-list'],
+        ],
+      ],
+    ],
+  ];
 }

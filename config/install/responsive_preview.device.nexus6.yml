@@ -1,0 +1,10 @@
+id: nexus6
+label: Nexus 6
+dimensions:
+  width: 1440
+  height: 2560
+  dppx: 3.5
+orientation: portrait
+status: 1
+weight: 4
+langcode: en

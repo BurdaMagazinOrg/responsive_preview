@@ -1,0 +1,10 @@
+id: nexus9
+label: Nexus 9
+dimensions:
+  width: 1536
+  height: 2048
+  dppx: 2
+orientation: portrait
+status: 1
+weight: 5
+langcode: en
